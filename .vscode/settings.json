@@ -1,10 +1,68 @@
 {
+  // Bazel-specific settings
+  "bazel.buildifierExecutable": "buildifier",
+  "bazel.buildifierFixOnFormat": true,
+  "bazel.queriesShareServer": false,
+  
+  // Bazel Stack VSCode CC settings
+  "bazel-stack-vscode-cc.bzlmod": true,
+  "bazel-stack-vscode-cc.compileCommandsPath": "${workspaceFolder}/compile_commands.json",
+  
+  // Use clangd instead of the default C++ extension for better performance
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "clangd.path": "clangd",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}",
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--header-insertion=iwyu",
+    "--pch-storage=memory"
+  ],
+  
+  // C/C++ settings (fallback when clangd is not available)
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.cStandard": "c11",
+  "C_Cpp.default.compilerPath": "/usr/bin/clang++",
+  "C_Cpp.errorSquiggles": "disabled",
+  "C_Cpp.autocomplete": "disabled",
+  "C_Cpp.formatting": "disabled",
+  
+  // File associations for Bazel
+  "files.associations": {
+    "BUILD": "bazel",
+    "BUILD.bazel": "bazel",
+    "WORKSPACE": "bazel",
+    "WORKSPACE.bazel": "bazel",
+    "*.bzl": "bazel",
+    "*.bazel": "bazel",
+    "*.BUILD": "bazel"
+  },
+  
+  // Search and file exclusions for Bazel
+  "search.exclude": {
+    "**/bazel-*": true,
+    "**/node_modules": true,
+    "**/.git": true
+  },
+  "files.exclude": {
+    "**/bazel-*": true
+  },
+  "files.watcherExclude": {
+    "**/bazel-*": true,
+    "**/bazel-bin/**": true,
+    "**/bazel-out/**": true,
+    "**/bazel-testlogs/**": true
+  },
+  
+  // C++ Runner settings (kept for compatibility)
   "C_Cpp_Runner.cCompilerPath": "clang",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
   "C_Cpp_Runner.debuggerPath": "lldb",
-  "C_Cpp_Runner.cStandard": "",
-  "C_Cpp_Runner.cppStandard": "",
-  "C_Cpp_Runner.msvcBatchPath": "C:/Program Files/Microsoft Visual Studio/VR_NR/Community/VC/Auxiliary/Build/vcvarsall.bat",
+  "C_Cpp_Runner.cStandard": "c11",
+  "C_Cpp_Runner.cppStandard": "c++17",
+  "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.useMsvc": false,
   "C_Cpp_Runner.warnings": [
     "-Wall",
@@ -45,6 +103,8 @@
   "C_Cpp_Runner.excludeSearch": [
     "**/build",
     "**/build/**",
+    "**/bazel-*",
+    "**/bazel-*/**",
     "**/.*",
     "**/.*/**",
     "**/.vscode",

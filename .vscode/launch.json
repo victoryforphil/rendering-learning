@@ -2,12 +2,65 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C/C++ Runner: Debug Session",
+      "name": "Debug hello_log (CodeLLDB)",
       "type": "lldb",
       "request": "launch",
       "args": [],
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/bazel-bin/examples/hello_log",
+      "preLaunchTask": "bazel: build hello_log",
+      "stopOnEntry": false,
+      "console": "integratedTerminal",
+      "sourceMap": {
+        "./": "${workspaceFolder}/"
+      }
+    },
+    {
+      "name": "Debug hello_triangle (CodeLLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/bazel-bin/examples/hello_triangle",
+      "preLaunchTask": "bazel: build hello_triangle",
+      "stopOnEntry": false,
+      "console": "integratedTerminal",
+      "sourceMap": {
+        "./": "${workspaceFolder}/"
+      }
+    },
+    {
+      "name": "Debug hello_log (cppdbg fallback)",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/bazel-bin/examples/hello_log",
+      "preLaunchTask": "bazel: build hello_log",
+      "stopAtEntry": false,
+      "environment": [],
+      "MIMode": "lldb"
+    },
+    {
+      "name": "Debug hello_triangle (cppdbg fallback)",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/bazel-bin/examples/hello_triangle",
+      "preLaunchTask": "bazel: build hello_triangle",
+      "stopAtEntry": false,
+      "environment": [],
+      "MIMode": "lldb"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
       "cwd": "/Users/alex/repos/vfp/rendering-learning/examples",
-      "program": "/Users/alex/repos/vfp/rendering-learning/examples/build/Debug/outDebug"
+      "program": "/Users/alex/repos/vfp/rendering-learning/examples/build/Debug/outDebug",
+      "MIMode": "lldb"
     }
   ]
 }
