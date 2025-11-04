@@ -12,7 +12,7 @@
 struct Vertex {
   glm::vec2 position;
   glm::vec3 color;
-  
+
 };
 
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   if (!glfwInit()) {
     exit(EXIT_FAILURE);
   }
-
+  
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   
