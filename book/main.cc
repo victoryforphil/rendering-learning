@@ -7,6 +7,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     spdlog::debug("Resized viewport");
 }
 
+void processInput(GLFWwindow* window){
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+        glfwSetWindowShouldClose(window, 1);
+    }
+}
+
 int main(){
     spdlog::set_pattern("[%^%l%$] %v");
     spdlog::set_level(spdlog::level::debug);
@@ -45,7 +51,12 @@ int main(){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     while(!glfwWindowShouldClose(window)){
+        processInput(window);
         glfwSwapBuffers(window);
+
+        // Set Clear Color to magenta
+        glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         glfwPollEvents();
     }
     glfwTerminate();
