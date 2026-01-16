@@ -1,6 +1,7 @@
 #include "vfp_vulkan_device.h"
 #include <vfp_error.h>
 #define GLFW_INCLUDE_VULKAN
+#define VK_USE_PLATFORM_XCB_KHR
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -15,10 +16,13 @@
 #define nullptr NULL
 
 int main(int argc, char **argv) {
+
     if (!glfwInit()) {
         printf("Failed to initialize GLFW\n");
         return -1;
     }
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
     vec2 vector;
     glm_vec2_zero(vector);
     // Create a windowed mode window and its OpenGL context
@@ -34,10 +38,6 @@ int main(int argc, char **argv) {
 
     printf("Game // Vulkan: Extension Count %d\n", vExtensionCount);
 
-    glfwMakeContextCurrent(window);
-
-
-
     VfpPipeline pipeline;
     char *vertex_path =
         vfp_runfiles_resolve(argv[0], "_main", "shaders/simple/glsl_vert.out");
@@ -51,30 +51,27 @@ int main(int argc, char **argv) {
 
     VfpError res = vfp_pipeline_create(&pipeline, vertex_path, fragment_path);
     if (res != VFP_OK) {
-        fprintf(stderr, "Game // Pipeline Failed to create pipeline: %s\n", vfp_error_string(res));
+        fprintf(stderr, "Game // Pipeline Failed to create pipeline: %s\n",
+                vfp_error_string(res));
         goto cleanup;
     }
 
     VfpDeviceVulkan device = {};
-    res = vfp_vulkan_device_create(&device);
+    res = vfp_vulkan_device_create(&device, window);
 
     if (res != VFP_OK) {
-        fprintf(stderr, "Game // Vulkan Failed to create device: %s\n", vfp_error_string(res));
+        fprintf(stderr, "Game // Vulkan Failed to create device: %s\n",
+                vfp_error_string(res));
         goto cleanup;
     }
-    
 
     printf("Game // Created vulkan device.\n");
 
-
-
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
-        glfwSwapBuffers(window);
+
         glfwPollEvents();
     }
-
-
 
 cleanup:
     free(vertex_path);

@@ -5,7 +5,90 @@
 #include <stdlib.h>
 #include <string.h>
 
-VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
+const char *vfp_vk_result_string(VkResult result) {
+    switch (result) {
+    case VK_SUCCESS:
+        return "VK_SUCCESS";
+    case VK_NOT_READY:
+        return "VK_NOT_READY";
+    case VK_TIMEOUT:
+        return "VK_TIMEOUT";
+    case VK_EVENT_SET:
+        return "VK_EVENT_SET";
+    case VK_EVENT_RESET:
+        return "VK_EVENT_RESET";
+    case VK_INCOMPLETE:
+        return "VK_INCOMPLETE";
+    case VK_ERROR_OUT_OF_HOST_MEMORY:
+        return "VK_ERROR_OUT_OF_HOST_MEMORY";
+    case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+        return "VK_ERROR_OUT_OF_DEVICE_MEMORY";
+    case VK_ERROR_INITIALIZATION_FAILED:
+        return "VK_ERROR_INITIALIZATION_FAILED";
+    case VK_ERROR_DEVICE_LOST:
+        return "VK_ERROR_DEVICE_LOST";
+    case VK_ERROR_MEMORY_MAP_FAILED:
+        return "VK_ERROR_MEMORY_MAP_FAILED";
+    case VK_ERROR_LAYER_NOT_PRESENT:
+        return "VK_ERROR_LAYER_NOT_PRESENT";
+    case VK_ERROR_EXTENSION_NOT_PRESENT:
+        return "VK_ERROR_EXTENSION_NOT_PRESENT";
+    case VK_ERROR_FEATURE_NOT_PRESENT:
+        return "VK_ERROR_FEATURE_NOT_PRESENT";
+    case VK_ERROR_INCOMPATIBLE_DRIVER:
+        return "VK_ERROR_INCOMPATIBLE_DRIVER";
+    case VK_ERROR_TOO_MANY_OBJECTS:
+        return "VK_ERROR_TOO_MANY_OBJECTS";
+    case VK_ERROR_FORMAT_NOT_SUPPORTED:
+        return "VK_ERROR_FORMAT_NOT_SUPPORTED";
+    case VK_ERROR_FRAGMENTED_POOL:
+        return "VK_ERROR_FRAGMENTED_POOL";
+    case VK_ERROR_OUT_OF_POOL_MEMORY:
+        return "VK_ERROR_OUT_OF_POOL_MEMORY";
+    case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+        return "VK_ERROR_INVALID_EXTERNAL_HANDLE";
+    case VK_ERROR_SURFACE_LOST_KHR:
+        return "VK_ERROR_SURFACE_LOST_KHR";
+    case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
+        return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
+    case VK_SUBOPTIMAL_KHR:
+        return "VK_SUBOPTIMAL_KHR";
+    case VK_ERROR_OUT_OF_DATE_KHR:
+        return "VK_ERROR_OUT_OF_DATE_KHR";
+    case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
+        return "VK_ERROR_INCOMPATIBLE_DISPLAY_KHR";
+    case VK_ERROR_VALIDATION_FAILED_EXT:
+        return "VK_ERROR_VALIDATION_FAILED_EXT";
+    case VK_ERROR_INVALID_SHADER_NV:
+        return "VK_ERROR_INVALID_SHADER_NV";
+    case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT:
+        return "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT";
+    case VK_ERROR_NOT_PERMITTED_EXT:
+        return "VK_ERROR_NOT_PERMITTED_EXT";
+    case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
+        return "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT";
+    case VK_THREAD_IDLE_KHR:
+        return "VK_THREAD_IDLE_KHR";
+    case VK_THREAD_DONE_KHR:
+        return "VK_THREAD_DONE_KHR";
+    case VK_OPERATION_DEFERRED_KHR:
+        return "VK_OPERATION_DEFERRED_KHR";
+    case VK_OPERATION_NOT_DEFERRED_KHR:
+        return "VK_OPERATION_NOT_DEFERRED_KHR";
+    case VK_ERROR_COMPRESSION_EXHAUSTED_EXT:
+        return "VK_ERROR_COMPRESSION_EXHAUSTED_EXT";
+    default:
+        return "VK_UNKNOWN_ERROR";
+    }
+}
+
+void vfp_vk_log_result(const char *label, VkResult result) {
+    fprintf(stderr, "%s: %s (%d)\n", label, vfp_vk_result_string(result),
+            result);
+}
+
+VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device,
+                                  GLFWwindow *window) {
 
     printf("Game // Vulkan // Creating Vulkan Application Info\n");
 
@@ -53,7 +136,19 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
     VkResult result =
         vkCreateInstance(&createInfo, NULL, &out_device->pInstance);
     if (result != VK_SUCCESS) {
-        fprintf(stderr, "Game // Vulkan // Failed to create Vulkan instance\n");
+        vfp_vk_log_result("Game // Vulkan // Failed to create Vulkan instance",
+                          result);
+        return VFP_ERROR_GENERIC;
+    }
+
+    // Create Surface
+    printf("Game // Vulkan // Creating Window Surface\n");
+
+    result = glfwCreateWindowSurface(out_device->pInstance, window, NULL,
+                                     &out_device->surface);
+    if (result != VK_SUCCESS) {
+        vfp_vk_log_result("Game // Vulkan // Failed to create window surface",
+                          result);
         return VFP_ERROR_GENERIC;
     }
 
@@ -73,7 +168,8 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
     // Get and populate graphics queue
     printf("VulkanDevice // Getting graphics queue...\n");
     VfpVkQueueFamilyIndices queueFamilyIndices = {};
-    vfp_vk_find_queue_families(&queueFamilyIndices, out_device->physicalDevice);
+    vfp_vk_find_queue_families(&queueFamilyIndices, out_device,
+                               out_device->physicalDevice);
     uint32_t graphicsFamilyIndex = queueFamilyIndices.graphicsFamily;
     vkGetDeviceQueue(out_device->logicalDevice, graphicsFamilyIndex, 0,
                      &out_device->graphicsQueue);
@@ -101,7 +197,11 @@ VfpError vfp_vulkan_device_destroy(VfpDeviceVulkan *device) {
         vkDestroyDevice(device->logicalDevice, NULL);
         // device->logicalDevice = VK_NULL_HANDLE;
     }
-
+    // Destroy surface
+    if (device->surface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(device->pInstance, device->surface, NULL);
+        // device->surface = VK_NULL_HANDLE;
+    }
     vkDestroyInstance(device->pInstance, NULL);
     device->pInstance = NULL;
     // free(device); // ERR double free or corruption (out)
@@ -175,7 +275,7 @@ VfpError vfp_vk_physical_pick(VfpDeviceVulkan *device) {
     for (uint32_t i = 0; i < deviceCount; i++) {
         bool isSuitable = false;
         VfpError res =
-            vfp_vk_physical_suitable(physicalDevices[i], &isSuitable);
+            vfp_vk_physical_suitable(device, physicalDevices[i], &isSuitable);
         if (res != VFP_OK) {
             free(physicalDevices);
             return res;
@@ -192,7 +292,8 @@ VfpError vfp_vk_physical_pick(VfpDeviceVulkan *device) {
 
     return VFP_OK;
 }
-VfpError vfp_vk_physical_suitable(VkPhysicalDevice physicalDevice,
+VfpError vfp_vk_physical_suitable(VfpDeviceVulkan *pDevice,
+                                  VkPhysicalDevice physicalDevice,
                                   bool *out_isSuitable) {
 
     VkPhysicalDeviceProperties deviceProperties;
@@ -212,7 +313,7 @@ VfpError vfp_vk_physical_suitable(VkPhysicalDevice physicalDevice,
     printf("    Device ID: %d\n", deviceProperties.deviceID);
 
     VfpVkQueueFamilyIndices queueFamilyIndices = {};
-    vfp_vk_find_queue_families(&queueFamilyIndices, physicalDevice);
+    vfp_vk_find_queue_families(&queueFamilyIndices, pDevice, physicalDevice);
 
     if (!queueFamilyIndices.bGraphicsFamilySet) {
         printf("Vulkan // Physical Device %s does not have required queue "
@@ -252,8 +353,19 @@ void vfp_vk_create_queue_family_index(VfpVkQueueFamilyIndices *out_indices,
     out_indices->graphicsFamily = familyIndex;
     out_indices->bGraphicsFamilySet = true;
 }
+void vfp_vk_create_present_queue_family_index(
+    VfpVkQueueFamilyIndices *out_indices, int32_t presentFamilyIndex) {
+    if (!out_indices) {
+        fprintf(stderr, "VulkanDevice // Error: NULL out_indices passed to "
+                        "vfp_vk_create_present_queue_family_index\n");
+        return;
+    }
+    out_indices->presentFamily = presentFamilyIndex;
+    out_indices->bPresentFamilySet = true;
+}
 
 VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
+                                    VfpDeviceVulkan *pDevice,
                                     VkPhysicalDevice physicalDevice) {
 
     uint32_t nQueueFamilies = 0;
@@ -268,7 +380,13 @@ VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
 
     // Iterate until we find a VK_QUEUE_GRAPHICS_BIT supported family
     for (uint32_t i = 0; i < nQueueFamilies; i++) {
-        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i,
+                                             pDevice->surface, &presentSupport);
+
+        if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT &&
+            presentSupport) {
             vfp_vk_create_queue_family_index(out_indices, i);
             printf("VulkanDevice // Found graphics queue family at index %d\n",
                    i);
@@ -285,7 +403,8 @@ VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
     printf("VulkanDevice // Creating logical device...\n");
     // 1. Get queue family indices
     VfpVkQueueFamilyIndices queueFamilyIndices = {};
-    vfp_vk_find_queue_families(&queueFamilyIndices, pDevice->physicalDevice);
+    vfp_vk_find_queue_families(&queueFamilyIndices, pDevice,
+                               pDevice->physicalDevice);
 
     // 2. Crate VkDeviceQueueCreateInfo
     VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -307,7 +426,8 @@ VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
     VkResult result = vkCreateDevice(pDevice->physicalDevice, &createInfo, NULL,
                                      &pDevice->logicalDevice);
     if (result != VK_SUCCESS) {
-        fprintf(stderr, "VulkanDevice // Failed to create logical device.\n");
+        vfp_vk_log_result("VulkanDevice // Failed to create logical device",
+                          result);
         return VFP_ERROR_GENERIC;
     }
 
