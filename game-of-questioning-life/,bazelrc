@@ -1,0 +1,6 @@
+#.bazelrc
+# Force Bazel to recognize Clang as the compiler driver
+build --action_env=CC=clang
+build --action_env=CXX=clang++
+build --linkopt=-fuse-ld=lld
+build --output_filter=^//

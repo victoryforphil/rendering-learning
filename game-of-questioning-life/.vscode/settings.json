@@ -1,0 +1,19 @@
+{
+    // Disable Microsoft IntelliSense
+    "C_Cpp.intelliSenseEngine": "disabled",
+
+    // Path to the system clangd (Arch Linux installs it here)
+    "clangd.path": "/usr/bin/clangd",
+
+    // Clangd Arguments
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}", // Location of compile_commands.json
+        "--header-insertion=iwyu" // "Include What You Use" logic
+    ],
+
+    // Associate Bazel files
+    "files.associations": {
+     //   "*.bazel": "starlark",
+        "*.bzl": "starlark"
+    }
+}
