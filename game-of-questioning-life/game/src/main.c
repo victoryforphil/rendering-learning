@@ -1,6 +1,11 @@
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <stdio.h>
 #include <cglm/cglm.h>
+
+#define nullptr NULL
 int main() {
     if (!glfwInit()) {
         printf("Failed to initialize GLFW\n");
@@ -14,6 +19,11 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
+    uint32_t vExtensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &vExtensionCount, nullptr);
+
+    printf("Game // Vulkan: Extension Count %d\n", vExtensionCount);
 
     glfwMakeContextCurrent(window);
 

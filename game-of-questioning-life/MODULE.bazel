@@ -3,6 +3,20 @@ module(
     version = "0.0.1-dev",
 )
 
+# https://github.com/mxpv/rules_vulkan
+
+
+bazel_dep(name = "rules_vulkan", version = "0.7.0")
+
+
+vulkan_sdk = use_extension("@rules_vulkan//vulkan:extensions.bzl", "vulkan_sdk")
+
+# Pick a Vulkan SDK version published by LunarG
+vulkan_sdk.toolchain(version = "1.4.313")
+use_repo(vulkan_sdk, "vulkan_sdk_1.4.313")
+
+register_toolchains("@vulkan_sdk_1.4.313//:all")
+
 # Fetch GLFW from the Bazel Central Registry
 bazel_dep(name = "glfw", version = "3.4.0.bcr.1")
 
@@ -34,3 +48,4 @@ git_override(
     remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
     commit = "4f28899228fb3ad0126897876f147ca15026151e", # Check upstream for latest commit
 )
+

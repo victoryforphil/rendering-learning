@@ -4,5 +4,6 @@ cc_binary(
     deps = [
         "@glfw//:glfw",
         "@cglm//:cglm",
+        "@vulkan_sdk_1.4.313//:vulkan"
     ],
 )
