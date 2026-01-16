@@ -1,9 +1,35 @@
-cc_binary(
-    name = "main",
-    srcs = ["src/main.c"],
+cc_library(
+    name = "game_lib",
+    srcs = glob([
+        "src/**/*.c",
+    ], exclude = [
+        "src/vfp_runfiles.c",
+    ]) + [
+        "src/vfp_runfiles.cc",
+    ],
+    hdrs = glob([
+        "include/**/*.h",
+    ]),
     deps = [
         "@glfw//:glfw",
         "@cglm//:cglm",
-        "@vulkan_sdk_1.4.313//:vulkan"
+        "@vulkan_sdk_1.4.313//:vulkan",
+        "@bazel_tools//tools/cpp/runfiles",
+
+        # Local deps
     ],
 )
+
+cc_binary(
+    name = "main",
+    srcs = ["src/main.c"],
+    data = [
+        "//shaders/simple:glsl_vert",
+        "//shaders/simple:glsl_frag",
+    ],
+    deps = [
+        ":game_lib",
+    ],
+)
+
+

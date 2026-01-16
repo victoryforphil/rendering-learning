@@ -1,0 +1,4 @@
+# Visability public for bazel workspace
+package(
+    default_visibility = ["//visibility:public"],
+)

@@ -1,0 +1,19 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+load("@rules_vulkan//vulkan:defs.bzl", "hlsl_shader", "glsl_shader")
+
+glsl_shader(
+    name = "glsl_vert",
+    src = "simple.glsl.vert",
+    stage = "vert",
+
+)
+
+glsl_shader(
+    name = "glsl_frag",
+    src = "simple.glsl.frag",
+    stage = "frag",
+
+)

@@ -4,3 +4,6 @@ build --action_env=CC=clang
 build --action_env=CXX=clang++
 build --linkopt=-fuse-ld=lld
 build --output_filter=^//
+build --copt=-Igame/include
+#build --verbose_failures
+#build --sandbox_debug
