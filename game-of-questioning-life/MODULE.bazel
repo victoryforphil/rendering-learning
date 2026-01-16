@@ -5,7 +5,7 @@ module(
 
 # https://github.com/mxpv/rules_vulkan
 
-
+bazel_dep(name = "apple_support", version = "2.1.0", repo_name = "build_bazel_apple_support")
 bazel_dep(name = "rules_vulkan", version = "0.7.0")
 
 

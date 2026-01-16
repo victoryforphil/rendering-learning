@@ -80,3 +80,5 @@ bazel-bin/*
 external/*
 
 .cache/*
+bazel-testlogs
+bazel-bin

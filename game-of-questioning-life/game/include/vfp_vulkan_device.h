@@ -57,6 +57,10 @@ static const uint32_t N_VFP_VK_VALIDATE_DEBUG_LAYERS =
 // TODO: Macro for statisc arrays
 static const char *const VFP_VK_DEVICE_EXTENSIONS[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+#if defined(__APPLE__)
+    "VK_KHR_portability_subset",
+
+#endif
 };
 
 static const uint32_t N_VFP_VK_DEVICE_EXTENSIONS =

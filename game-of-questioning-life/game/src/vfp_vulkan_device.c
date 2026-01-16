@@ -98,7 +98,7 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device,
     appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 1);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_4;
 
     printf("Game // Vulkan // Creating Vuklan Create Info\n");
 
@@ -111,8 +111,24 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device,
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    uint32_t extensionCount = glfwExtensionCount;
+    const char **extensions = glfwExtensions;
+    bool shouldFreeExtensions = false;
+
+#if defined(__APPLE__)
+    extensionCount += 1;
+    extensions = malloc(sizeof(char *) * extensionCount);
+    for (uint32_t i = 0; i < glfwExtensionCount; i++) {
+        extensions[i] = glfwExtensions[i];
+    }
+    extensions[extensionCount - 1] =
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
+    shouldFreeExtensions = true;
+    createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
+
+    createInfo.enabledExtensionCount = extensionCount;
+    createInfo.ppEnabledExtensionNames = extensions;
 
     createInfo.enabledLayerCount = 0;
 
@@ -135,6 +151,9 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device,
 
     VkResult result =
         vkCreateInstance(&createInfo, NULL, &out_device->pInstance);
+    if (shouldFreeExtensions) {
+        free(extensions);
+    }
     if (result != VK_SUCCESS) {
         vfp_vk_log_result("Game // Vulkan // Failed to create Vulkan instance",
                           result);
@@ -299,6 +318,12 @@ VfpError vfp_vk_physical_pick(VfpDeviceVulkan *device) {
     }
     free(physicalDevices);
 
+    if (device->physicalDevice == VK_NULL_HANDLE) {
+        fprintf(stderr,
+                "Game // VulkanDevice // No suitable physical device found.\n");
+        return VFP_VK_NO_SUITABLE_PHYSICAL_DEVICE;
+    }
+
     return VFP_OK;
 }
 VfpError vfp_vk_physical_suitable(VfpDeviceVulkan *pDevice,
@@ -337,6 +362,14 @@ VfpError vfp_vk_physical_suitable(VfpDeviceVulkan *pDevice,
                "families.\n",
                deviceProperties.deviceName);
         *out_isSuitable = false;
+        return VFP_OK;
+    }
+
+    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ) {
+        printf("Vulkan // Physical Device %s is integrated GPU; skipping "
+               "geometry shader requirement for MoltenVK.\n",
+               deviceProperties.deviceName);
+        *out_isSuitable = true;
         return VFP_OK;
     }
 
@@ -416,6 +449,13 @@ VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &nQueueFamilies,
                                              NULL);
 
+    if (nQueueFamilies == 0) {
+        fprintf(stderr,
+                "VulkanDevice // Error: No queue families found on physical "
+                "device.\n");
+        return VFP_VK_NO_QUEUE_FAMILIES_FOUND;
+    }
+
     VkQueueFamilyProperties *queueFamilies =
         malloc(sizeof(VkQueueFamilyProperties) * nQueueFamilies);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &nQueueFamilies,
@@ -424,7 +464,7 @@ VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
     // Iterate until we find a VK_QUEUE_GRAPHICS_BIT supported family
     for (uint32_t i = 0; i < nQueueFamilies; i++) {
 
-        if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT) {
+        if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             vfp_vk_create_queue_family_index(out_indices, i);
             printf("VulkanDevice // Found graphics queue family at index %d\n",
                    i);
