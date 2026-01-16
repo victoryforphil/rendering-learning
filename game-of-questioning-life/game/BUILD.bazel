@@ -3,5 +3,6 @@ cc_binary(
     srcs = ["src/main.c"],
     deps = [
         "@glfw//:glfw",
+        "@cglm//:cglm",
     ],
 )

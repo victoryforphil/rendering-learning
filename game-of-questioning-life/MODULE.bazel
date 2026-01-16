@@ -1,7 +1,28 @@
 module(
-    name = "",
-    version = "1.0.0",
+    name = "game-of-questioning-life",
+    version = "0.0.1-dev",
 )
 
 # Fetch GLFW from the Bazel Central Registry
 bazel_dep(name = "glfw", version = "3.4.0.bcr.1")
+
+
+# 1. Import http_archive so you can use it
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# 2. Define the repo just like you did in WORKSPACE
+http_archive(
+    name = "cglm",
+    # Same custom build content to force header-only
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "cglm",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+)
+    """,
+    strip_prefix = "cglm-0.9.6",
+    urls = ["https://github.com/recp/cglm/archive/refs/tags/v0.9.6.tar.gz"],
+)
