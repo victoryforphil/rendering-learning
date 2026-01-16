@@ -1,0 +1,7 @@
+module(
+    name = "",
+    version = "1.0.0",
+)
+
+# Fetch GLFW from the Bazel Central Registry
+bazel_dep(name = "glfw", version = "3.4.0.bcr.1")
