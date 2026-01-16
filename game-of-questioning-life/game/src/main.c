@@ -1,3 +1,4 @@
+#include "vfp_vulkan_device.h"
 #include <vfp_error.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -12,6 +13,8 @@
 #include "vfp_runfiles.h"
 
 #define nullptr NULL
+
+
 int main(int argc, char **argv) {
     if (!glfwInit()) {
         printf("Failed to initialize GLFW\n");
@@ -23,8 +26,8 @@ int main(int argc, char **argv) {
     GLFWwindow *window =
         glfwCreateWindow(1280, 720, "Game of Questioning Life", NULL, NULL);
     if (!window) {
-        glfwTerminate();
-        return -1;
+        printf("Failed to create GLFW window\n");
+        goto cleanup;
     }
 
     uint32_t vExtensionCount = 0;
@@ -34,7 +37,7 @@ int main(int argc, char **argv) {
 
     glfwMakeContextCurrent(window);
 
-    /// Random Code BS
+
 
     VfpPipeline pipeline;
     char *vertex_path =
@@ -44,18 +47,27 @@ int main(int argc, char **argv) {
 
     if (!vertex_path || !fragment_path) {
         printf("Failed to resolve shader paths\n");
-        glfwTerminate();
-        return -1;
+        goto cleanup;
     }
 
     VfpError res = vfp_pipeline_create(&pipeline, vertex_path, fragment_path);
+    if (res != VFP_OK) {
+        fprintf(stderr, "Game // Pipeline Failed to create pipeline: %s\n", vfp_error_string(res));
+        goto cleanup;
+    }
 
-    printf("Game // Pipeline Creation Result: %s\n", vfp_error_string(res));
+    VfpDeviceVulkan device = {};
+    res = vfp_vulkan_device_create(&device);
 
-    free(vertex_path);
-    free(fragment_path);
+    if (res != VFP_OK) {
+        fprintf(stderr, "Game // Vulkan Failed to create device: %s\n", vfp_error_string(res));
+        goto cleanup;
+    }
+    
 
-    /// End of Random Code BS
+    printf("Game // Created vulkan device.\n");
+
+
 
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
@@ -63,7 +75,14 @@ int main(int argc, char **argv) {
         glfwPollEvents();
     }
 
+
+
+cleanup:
+    free(vertex_path);
+    free(fragment_path);
+
     vfp_pipeline_destroy(&pipeline);
+    vfp_vulkan_device_destroy(&device);
 
     glfwTerminate();
     return 0;
