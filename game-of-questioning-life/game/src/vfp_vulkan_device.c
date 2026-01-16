@@ -58,7 +58,25 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
     }
 
     printf("VulkanDevice // Picking physical device...\n");
-    vfp_vk_physical_pick(out_device);
+    if (vfp_vk_physical_pick(out_device) != VFP_OK) {
+        fprintf(stderr, "Game // Vulkan // Failed to pick physical device\n");
+        return VFP_ERROR_GENERIC;
+    }
+
+    // Create Logical Device
+    printf("VulkanDevice // Creating logical device...\n");
+    if (vfp_vk_create_logical_device(out_device) != VFP_OK) {
+        fprintf(stderr, "Game // Vulkan // Failed to create logical device\n");
+        return VFP_ERROR_GENERIC;
+    }
+
+    // Get and populate graphics queue
+    printf("VulkanDevice // Getting graphics queue...\n");
+    VfpVkQueueFamilyIndices queueFamilyIndices = {};
+    vfp_vk_find_queue_families(&queueFamilyIndices, out_device->physicalDevice);
+    uint32_t graphicsFamilyIndex = queueFamilyIndices.graphicsFamily;
+    vkGetDeviceQueue(out_device->logicalDevice, graphicsFamilyIndex, 0,
+                     &out_device->graphicsQueue);
 
     return VFP_OK;
 }
@@ -76,6 +94,12 @@ VfpError vfp_vulkan_device_destroy(VfpDeviceVulkan *device) {
         fprintf(stderr, "Game // Vulkan // Warning: Attempted to destroy a "
                         "Vulkan device with NULL instance\n");
         return VFP_ERROR_GENERIC;
+    }
+
+    // Null check and free logical device
+    if (device->logicalDevice != VK_NULL_HANDLE) {
+        vkDestroyDevice(device->logicalDevice, NULL);
+        // device->logicalDevice = VK_NULL_HANDLE;
     }
 
     vkDestroyInstance(device->pInstance, NULL);
@@ -186,7 +210,7 @@ VfpError vfp_vk_physical_suitable(VkPhysicalDevice physicalDevice,
     printf("    Driver Version: %d\n", deviceProperties.driverVersion);
     printf("    Vendor ID: %d\n", deviceProperties.vendorID);
     printf("    Device ID: %d\n", deviceProperties.deviceID);
-    
+
     VfpVkQueueFamilyIndices queueFamilyIndices = {};
     vfp_vk_find_queue_families(&queueFamilyIndices, physicalDevice);
 
@@ -253,5 +277,39 @@ VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
     }
 
     // Placeholder for future queue family finding logic
+    return VFP_OK;
+}
+
+VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
+    // Placeholder for future logical device creation logic
+    printf("VulkanDevice // Creating logical device...\n");
+    // 1. Get queue family indices
+    VfpVkQueueFamilyIndices queueFamilyIndices = {};
+    vfp_vk_find_queue_families(&queueFamilyIndices, pDevice->physicalDevice);
+
+    // 2. Crate VkDeviceQueueCreateInfo
+    VkDeviceQueueCreateInfo queueCreateInfo = {};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+    queueCreateInfo.queueCount = 1;
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+
+    VkDeviceCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    VkResult result = vkCreateDevice(pDevice->physicalDevice, &createInfo, NULL,
+                                     &pDevice->logicalDevice);
+    if (result != VK_SUCCESS) {
+        fprintf(stderr, "VulkanDevice // Failed to create logical device.\n");
+        return VFP_ERROR_GENERIC;
+    }
+
     return VFP_OK;
 }

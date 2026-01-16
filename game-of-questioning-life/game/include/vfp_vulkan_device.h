@@ -12,6 +12,8 @@ typedef struct VfpVulkanDevice {
     VkInstance pInstance;
     bool bValidateDebugEnabled;
     VkPhysicalDevice physicalDevice;
+    VkDevice logicalDevice;
+    VkQueue graphicsQueue;
 
 } VfpDeviceVulkan;
 
@@ -20,9 +22,8 @@ typedef struct VfpVkQueueFamilyIndices {
     bool bGraphicsFamilySet;
 } VfpVkQueueFamilyIndices;
 
-
-void vfp_vk_create_queue_family_index(VfpVkQueueFamilyIndices* out_indices, int32_t familyIndex);
-
+void vfp_vk_create_queue_family_index(VfpVkQueueFamilyIndices *out_indices,
+                                      int32_t familyIndex);
 
 static const char *const VFP_VK_VALIDATE_DEBUG_LAYERS[] = {
     "VK_LAYER_KHRONOS_validation",
@@ -41,7 +42,9 @@ VfpError vfp_vk_physical_pick(VfpDeviceVulkan *device);
 VfpError vfp_vk_physical_suitable(VkPhysicalDevice physicalDevice,
                                   bool *out_isSuitable);
 
-VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices* out_indices,
-                                   VkPhysicalDevice physicalDevice);
+VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
+                                    VkPhysicalDevice physicalDevice);
+
+VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice);
 
 #endif // _VFP_VULKAN_DEVICE_H_

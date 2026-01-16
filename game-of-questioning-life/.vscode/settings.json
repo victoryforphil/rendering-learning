@@ -1,4 +1,6 @@
 {
+    "editor.formatOnSave": true,
+
     // Disable Microsoft IntelliSense
     "C_Cpp.intelliSenseEngine": "disabled",
 
