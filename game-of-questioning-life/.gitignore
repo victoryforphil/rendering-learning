@@ -73,3 +73,10 @@ dkms.conf
 /bazel-*
 /.bazelrc.user
 /.bazelrc.local
+
+bazel-bin
+bazel-bin/*
+
+external/*
+
+.cache/*
