@@ -8,7 +8,7 @@ typedef enum {
     // Pipeline Errors
     VFP_PIPELINE_LOAD_VERTEX_FAILED = 100,
     VFP_PIPELINE_LOAD_FRAGMENT_FAILED = 101,
-} VFP_Error;
+} VfpError;
 
-const char *vfp_error_string(VFP_Error err);
+const char *vfp_error_string(VfpError err);
 #endif // _VFP_ERROR_H_

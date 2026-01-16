@@ -7,7 +7,7 @@ static const char *ERROR_STRINGS[] = {
     [VFP_PIPELINE_LOAD_FRAGMENT_FAILED] = "Failed to load fragment shader",
 };
 
-const char *vfp_error_string(VFP_Error err) {
+const char *vfp_error_string(VfpError err) {
     
     return ERROR_STRINGS[err];
 }

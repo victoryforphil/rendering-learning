@@ -6,7 +6,7 @@
 
 char *__vfp_read_file_to_string(const char *path) {
     FILE *f = fopen(path, "rb");
-    if (!f){
+    if (!f) {
         fprintf(stderr, "Failed to open file: %s\n", path);
         return NULL;
     }
@@ -34,14 +34,16 @@ char *__vfp_read_file_to_string(const char *path) {
     return buffer; // caller must free()
 }
 
+VfpError vfp_pipeline_create(VfpPipeline *out_pipeline,
+                              const char *path_vertex_shader,
+                              const char *path_fragment_shader) {
 
-VFP_Error vfp_pipeline_create(VFP_ShaderPipeline *out_pipeline, const char* path_vertex_shader, const char* path_fragment_shader){
-
-    char* vertex_shader_data = __vfp_read_file_to_string(path_vertex_shader);
+    char *vertex_shader_data = __vfp_read_file_to_string(path_vertex_shader);
     if (!vertex_shader_data) {
         return VFP_PIPELINE_LOAD_VERTEX_FAILED;
     }
-    char* fragment_shader_data = __vfp_read_file_to_string(path_fragment_shader);
+    char *fragment_shader_data =
+        __vfp_read_file_to_string(path_fragment_shader);
     if (!fragment_shader_data) {
         free(vertex_shader_data);
         return VFP_PIPELINE_LOAD_FRAGMENT_FAILED;
@@ -50,12 +52,11 @@ VFP_Error vfp_pipeline_create(VFP_ShaderPipeline *out_pipeline, const char* path
     out_pipeline->vertex_shader_data = vertex_shader_data;
     out_pipeline->fragment_shader_data = fragment_shader_data;
 
-
     return VFP_OK;
-  //  vfp_pipeline_load(out_pipeline);
+    //  vfp_pipeline_load(out_pipeline);
     return VFP_OK;
 }
-VFP_Error vfp_pipeline_destroy(VFP_ShaderPipeline *pipeline){
+VfpError vfp_pipeline_destroy(VfpPipeline *pipeline) {
 
     if (pipeline->vertex_shader_data) {
         free(pipeline->vertex_shader_data);
@@ -67,4 +68,3 @@ VFP_Error vfp_pipeline_destroy(VFP_ShaderPipeline *pipeline){
     }
     return VFP_OK;
 }
-

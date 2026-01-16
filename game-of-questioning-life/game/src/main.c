@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     glm_vec2_zero(vector);
     // Create a windowed mode window and its OpenGL context
     GLFWwindow *window =
-        glfwCreateWindow(640, 480, "Game of Questioning Life", NULL, NULL);
+        glfwCreateWindow(1280, 720, "Game of Questioning Life", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -36,13 +36,11 @@ int main(int argc, char **argv) {
 
     /// Random Code BS
 
-    VFP_ShaderPipeline pipeline;
-    char *vertex_path = vfp_runfiles_resolve(argv[0],
-                                             "_main",
-                                             "shaders/simple/glsl_vert.out");
-    char *fragment_path = vfp_runfiles_resolve(argv[0],
-                                               "_main",
-                                               "shaders/simple/glsl_frag.out");
+    VfpPipeline pipeline;
+    char *vertex_path =
+        vfp_runfiles_resolve(argv[0], "_main", "shaders/simple/glsl_vert.out");
+    char *fragment_path =
+        vfp_runfiles_resolve(argv[0], "_main", "shaders/simple/glsl_frag.out");
 
     if (!vertex_path || !fragment_path) {
         printf("Failed to resolve shader paths\n");
@@ -50,7 +48,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    VFP_Error res = vfp_pipeline_create(&pipeline, vertex_path, fragment_path);
+    VfpError res = vfp_pipeline_create(&pipeline, vertex_path, fragment_path);
 
     printf("Game // Pipeline Creation Result: %s\n", vfp_error_string(res));
 
