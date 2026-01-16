@@ -2,6 +2,7 @@
 #include "vfp_error.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
 
@@ -31,6 +32,17 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device) {
 
     createInfo.enabledLayerCount = 0;
 
+    // If VFP_VK_DEBUG is defined, enable validation layers
+    #ifdef VFP_VK_DEBUG
+    printf("Game // Vulkan // Enabling Validation Layers\n");
+    VfpError res = vfp_vk_validate_check_support();
+    if (res != VFP_OK) {
+        fprintf(stderr, "Game // Vulkan // Validation layers requested, but not available\n");
+        return res;
+    }
+    #endif
+
+
     printf("Game // Vulkan // Creating Vulkan Instance\n");
 
     VkResult result = vkCreateInstance(&createInfo, NULL, &out_device->pInstance);
@@ -58,5 +70,42 @@ VfpError vfp_vulkan_device_destroy(VfpDeviceVulkan *device){
     vkDestroyInstance(device->pInstance, NULL);
     device->pInstance = NULL;
     //free(device); // ERR double free or corruption (out)
+    return VFP_OK;
+}
+
+/// ---- Validate Support ---- /// 
+
+VfpError vfp_vk_validate_check_support(){
+    printf("Game // VulkanDevice // Checking layer support...");
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, NULL);
+
+    VkLayerProperties *availableLayers = malloc(sizeof(VkLayerProperties) * layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
+
+    printf("Game // VulkanDevice // Found %d layers\n", layerCount);
+    // Print a nice list of available layers
+    for (uint32_t i = 0; i < layerCount; i++) {
+        printf("    %s\n", availableLayers[i].layerName);
+    }
+
+    for (size_t i = 0; i < nVfpVkDebugValidateLayers; i++) {
+        bool layerFound = false;
+        for (uint32_t j = 0; j < layerCount; j++) {
+            if (strcmp(VfpVkDebugValidateLayers[i], availableLayers[j].layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+        if (!layerFound) {
+            fprintf(stderr, "Game // VulkanDevice // Validation layer not found: %s\n", VfpVkDebugValidateLayers[i]);
+            free(availableLayers);
+            return VFP_ERROR_GENERIC;
+        }
+    }
+
+    free(availableLayers);
+    printf("Game // VulkanDevice // All validation layers are supported.\n");
+
     return VFP_OK;
 }

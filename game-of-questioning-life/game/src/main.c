@@ -14,7 +14,6 @@
 
 #define nullptr NULL
 
-
 int main(int argc, char **argv) {
     if (!glfwInit()) {
         printf("Failed to initialize GLFW\n");
