@@ -372,15 +372,25 @@ VfpError vfp_vk_find_queue_families(VfpVkQueueFamilyIndices *out_indices,
     // Iterate until we find a VK_QUEUE_GRAPHICS_BIT supported family
     for (uint32_t i = 0; i < nQueueFamilies; i++) {
 
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i,
-                                             pDevice->surface, &presentSupport);
-
-        if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT &&
-            presentSupport) {
+        if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT) {
             vfp_vk_create_queue_family_index(out_indices, i);
             printf("VulkanDevice // Found graphics queue family at index %d\n",
                    i);
+        }
+
+        VkBool32 presentSupport = false;
+
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i,
+                                             pDevice->surface, &presentSupport);
+        if (presentSupport) {
+            vfp_vk_create_present_queue_family_index(out_indices, i);
+            printf("VulkanDevice // Found present queue family at index %d\n",
+                   i);
+        }
+        if (out_indices->bGraphicsFamilySet && out_indices->bPresentFamilySet) {
+            printf(
+                "VulkanDevice // Found all required queue families, stopping "
+                "search.\n");
             break;
         }
     }
@@ -397,20 +407,42 @@ VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
     vfp_vk_find_queue_families(&queueFamilyIndices, pDevice,
                                pDevice->physicalDevice);
 
-    // 2. Crate VkDeviceQueueCreateInfo
+    // TODO: Use a Set and for loop to create multiple queue create infos if
+    //  needed
+    float queuePriority = 1.0f;
+    // 2. Crate VkDeviceQueueCreateInfo for graphicsFamily
+
+    int nCreateInfos = 1;
+
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
     queueCreateInfo.queueCount = 1;
-    float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    VkDeviceQueueCreateInfo createInfos[2] = {queueCreateInfo};
+
+    // 2.2. Create VkDeviceQueueCreateInfo for presentFamily if different
+    if (queueFamilyIndices.graphicsFamily != queueFamilyIndices.presentFamily) {
+        VkDeviceQueueCreateInfo presentQueueCreateInfo = {};
+        presentQueueCreateInfo.sType =
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        presentQueueCreateInfo.queueFamilyIndex =
+            queueFamilyIndices.presentFamily;
+        presentQueueCreateInfo.queueCount = 1;
+        presentQueueCreateInfo.pQueuePriorities = &queuePriority;
+        // Note: In a full implementation, you'd need to handle multiple queue
+        // create infos
+        nCreateInfos = 2;
+        createInfos[1] = presentQueueCreateInfo;
+    }
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = createInfos;
+    createInfo.queueCreateInfoCount = nCreateInfos;
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
@@ -426,6 +458,11 @@ VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
 
     vkGetDeviceQueue(pDevice->logicalDevice, queueFamilyIndices.graphicsFamily,
                      0, &pDevice->graphicsQueue);
+
+    // Get and populate present queue
+    printf("VulkanDevice // Logical // Getting present queue...\n");
+    vkGetDeviceQueue(pDevice->logicalDevice, queueFamilyIndices.presentFamily,
+                     0, &pDevice->presentQueue);
 
     return VFP_OK;
 }
