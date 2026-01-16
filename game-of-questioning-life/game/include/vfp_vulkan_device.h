@@ -14,6 +14,7 @@ typedef struct VfpDeviceVulkan {
     VkPhysicalDevice physicalDevice;
     VkDevice logicalDevice;
     VkQueue graphicsQueue;
+    VkQueue presentQueue;
     VkSurfaceKHR surface;
 
 } VfpDeviceVulkan;

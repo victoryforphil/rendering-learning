@@ -1,7 +1,14 @@
 #include "vfp_vulkan_device.h"
 #include <vfp_error.h>
 #define GLFW_INCLUDE_VULKAN
+
+#if defined(__APPLE__)
+#define VK_USE_PLATFORM_METAL_EXT
+#define GLFW_INCLUDE_NONE
+#elif defined(__linux__)
 #define VK_USE_PLATFORM_XCB_KHR
+#endif
+
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

@@ -165,15 +165,6 @@ VfpError vfp_vulkan_device_create(VfpDeviceVulkan *out_device,
         return VFP_ERROR_GENERIC;
     }
 
-    // Get and populate graphics queue
-    printf("VulkanDevice // Getting graphics queue...\n");
-    VfpVkQueueFamilyIndices queueFamilyIndices = {};
-    vfp_vk_find_queue_families(&queueFamilyIndices, out_device,
-                               out_device->physicalDevice);
-    uint32_t graphicsFamilyIndex = queueFamilyIndices.graphicsFamily;
-    vkGetDeviceQueue(out_device->logicalDevice, graphicsFamilyIndex, 0,
-                     &out_device->graphicsQueue);
-
     return VFP_OK;
 }
 
@@ -430,6 +421,11 @@ VfpError vfp_vk_create_logical_device(VfpDeviceVulkan *pDevice) {
                           result);
         return VFP_ERROR_GENERIC;
     }
+    // Get and populate graphics queue
+    printf("VulkanDevice // Logical // Getting graphics queue...\n");
+
+    vkGetDeviceQueue(pDevice->logicalDevice, queueFamilyIndices.graphicsFamily,
+                     0, &pDevice->graphicsQueue);
 
     return VFP_OK;
 }

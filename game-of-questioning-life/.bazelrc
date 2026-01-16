@@ -2,9 +2,13 @@
 # Force Bazel to recognize Clang as the compiler driver
 build --action_env=CC=clang
 build --action_env=CXX=clang++
-build --linkopt=-fuse-ld=lld
 build --output_filter=^//
 build --copt=-Igame/include
 build --copt=-DVFP_VK_DEBUG
+build --enable_platform_specific_config
+
+# Platform-specific defaults
+build:linux --linkopt=-fuse-ld=lld
+
 #build --verbose_failures
 #build --sandbox_debug
