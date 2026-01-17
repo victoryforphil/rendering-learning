@@ -1,6 +1,10 @@
 # TODO List
-- [ ] Add proper `main.c` cleaup methods
+- [x] Add proper `main.c` cleaup methods
     - [ ] Add helper cleanup functions / macros for freeing during cleanup IF not null
+- [ ] Better string wrapper
+- [ ] Debug messaging for vulkan
+- [ ] Better split up Vulkan Device
+- [ ] Fix naming across vulkan_device.
 
 # Wish List
 - [ ] Optional polyfill
