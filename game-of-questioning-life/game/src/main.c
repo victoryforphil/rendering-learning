@@ -56,24 +56,17 @@ int main(int argc, char **argv) {
         goto cleanup;
     }
 
-    VfpError res = vfp_pipeline_create(&pipeline, vertex_path, fragment_path);
-    if (res != VFP_OK) {
-        fprintf(stderr, "Game // Pipeline Failed to create pipeline: %s\n",
-                vfp_error_string(res));
-        goto cleanup;
-    }
-
     VfpDeviceVulkan device = {};
-    res = vfp_vulkan_device_create(&device, window);
-
-    if (res != VFP_OK) {
-        fprintf(stderr, "Game // Vulkan Failed to create device: %s\n",
-                vfp_error_string(res));
+    if (vfp_vulkan_device_create(&device, window) != VFP_OK) {
         goto cleanup;
     }
-
     printf("Game // Created vulkan device.\n");
 
+    if (vfp_pipeline_create(&pipeline, vertex_path, fragment_path, &device) !=
+        VFP_OK) {
+        goto cleanup;
+    }
+    printf("Game // Created pipeline.\n");
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
 

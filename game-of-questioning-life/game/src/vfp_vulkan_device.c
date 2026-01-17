@@ -365,7 +365,7 @@ VfpError vfp_vk_physical_suitable(VfpDeviceVulkan *pDevice,
         return VFP_OK;
     }
 
-    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ) {
+    if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
         printf("Vulkan // Physical Device %s is integrated GPU; skipping "
                "geometry shader requirement for MoltenVK.\n",
                deviceProperties.deviceName);
