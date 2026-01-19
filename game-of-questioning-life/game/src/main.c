@@ -1,3 +1,4 @@
+#include "vfp_render_pass.h"
 #include "vfp_vulkan_device.h"
 #include <vfp_error.h>
 #define GLFW_INCLUDE_VULKAN
@@ -67,6 +68,16 @@ int main(int argc, char **argv) {
         goto cleanup;
     }
     printf("Game // Created pipeline.\n");
+    VfpRenderPass renderPass = {};
+
+    printf("Game // Creating Render Pass\n");
+    if (vfp_render_pass_create(&renderPass, &device) != VFP_OK) {
+        printf("Game // FAILED Created pipeline.\n");
+
+        goto cleanup;
+    }
+
+
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
 
@@ -76,7 +87,7 @@ int main(int argc, char **argv) {
 cleanup:
     free(vertex_path);
     free(fragment_path);
-
+    vfp_render_pass_destroy(&renderPass, &device);
     vfp_pipeline_destroy(&device, &pipeline);
     vfp_vulkan_device_destroy(&device);
 
