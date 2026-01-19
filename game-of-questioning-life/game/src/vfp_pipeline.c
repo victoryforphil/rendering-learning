@@ -1,4 +1,5 @@
 #include "vfp_pipeline.h"
+#include "vfp_vulkan_device.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,13 +106,126 @@ VfpError vfp_pipeline_create(VfpPipeline *out_pipeline,
         fragmentShaderStageInfo,
     };
 
+    // Dynamic State
+    VkDynamicState dynamicStates[] = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
+    dynamicStateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicStateInfo.dynamicStateCount = 2;
+    dynamicStateInfo.pDynamicStates = dynamicStates;
+
+    // Setup input stage
+    // For now we just use hardcoded empty values
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+    vertexInputInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    vertexInputInfo.pVertexBindingDescriptions = NULL;
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.pVertexAttributeDescriptions = NULL;
+
+    // Input assembly stage
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo = {};
+    inputAssemblyInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+
+    VkViewport viewport = {};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float)pDevice->swapchainExtent.width;
+    viewport.height = (float)pDevice->swapchainExtent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor = {};
+    scissor.offset = (VkOffset2D){0, 0};
+    scissor.extent = pDevice->swapchainExtent;
+
+    VkPipelineViewportStateCreateInfo viewportStateInfo = {};
+    viewportStateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportStateInfo.viewportCount = 1;
+    viewportStateInfo.pViewports = &viewport;
+    viewportStateInfo.scissorCount = 1;
+    viewportStateInfo.pScissors = &scissor;
+
+    // Rasterizer stage
+    VkPipelineRasterizationStateCreateInfo rasterizerInfo = {};
+    rasterizerInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizerInfo.depthClampEnable = VK_FALSE;
+    rasterizerInfo.rasterizerDiscardEnable = VK_FALSE;
+    rasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizerInfo.lineWidth = 1.0f;
+    rasterizerInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizerInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizerInfo.depthBiasEnable = VK_FALSE;
+    rasterizerInfo.depthBiasConstantFactor = 0.0f;
+    rasterizerInfo.depthBiasClamp = 0.0f;
+    rasterizerInfo.depthBiasSlopeFactor = 0.0f;
+
+    // Multisampling stage
+    VkPipelineMultisampleStateCreateInfo multisampleInfo = {};
+    multisampleInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleInfo.sampleShadingEnable = VK_FALSE;
+    multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampleInfo.minSampleShading = 1.0f;
+    multisampleInfo.pSampleMask = NULL;
+    multisampleInfo.alphaToCoverageEnable = VK_FALSE;
+    multisampleInfo.alphaToOneEnable = VK_FALSE;
+
+    // Color blending stage
+
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_FALSE;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    VkPipelineColorBlendStateCreateInfo colorBlendingInfo = {};
+    colorBlendingInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendingInfo.logicOpEnable = VK_FALSE;
+    colorBlendingInfo.logicOp = VK_LOGIC_OP_COPY;
+    colorBlendingInfo.attachmentCount = 1;
+    colorBlendingInfo.pAttachments = &colorBlendAttachment;
+    colorBlendingInfo.blendConstants[0] = 0.0f;
+    colorBlendingInfo.blendConstants[1] = 0.0f;
+    colorBlendingInfo.blendConstants[2] = 0.0f;
+    colorBlendingInfo.blendConstants[3] = 0.0f;
+
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0;
+    pipelineLayoutInfo.pSetLayouts = NULL;
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.pPushConstantRanges = NULL;
+    if (vkCreatePipelineLayout(pDevice->logicalDevice, &pipelineLayoutInfo,
+                               NULL,
+                               &out_pipeline->pipelineLayout) != VK_SUCCESS) {
+        fprintf(stderr,
+                "Game // Pipeline // Failed to create pipeline layout.\n");
+        return VFP_ERROR_GENERIC;
+    }
     // Clean up
 
     vkDestroyShaderModule(pDevice->logicalDevice, vertexShaderModule, NULL);
     vkDestroyShaderModule(pDevice->logicalDevice, fragmentShaderModule, NULL);
     return VFP_OK;
 }
-VfpError vfp_pipeline_destroy(VfpPipeline *pipeline) {
+VfpError vfp_pipeline_destroy(VfpDeviceVulkan *pDevice, VfpPipeline *pipeline) {
 
     if (pipeline->vertex_shader_data) {
         free(pipeline->vertex_shader_data);
@@ -122,6 +236,13 @@ VfpError vfp_pipeline_destroy(VfpPipeline *pipeline) {
         free(pipeline->fragment_shader_data);
         pipeline->fragment_shader_data = NULL;
         pipeline->fragment_shader_size = 0;
+    }
+
+    if (pipeline->pipelineLayout) {
+        // Destroy pipeline layout
+        vkDestroyPipelineLayout(pDevice->logicalDevice,
+                                pipeline->pipelineLayout, NULL);
+        pipeline->pipelineLayout = VK_NULL_HANDLE;
     }
     return VFP_OK;
 }

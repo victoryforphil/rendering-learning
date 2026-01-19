@@ -13,6 +13,8 @@ typedef struct VfpPipeline {
     uint8_t *fragment_shader_data;
     size_t fragment_shader_size;
 
+    VkPipelineLayout pipelineLayout;
+
 } VfpPipeline;
 
 VfpError vfp_pipeline_create(VfpPipeline *out_pipeline,
@@ -26,6 +28,6 @@ VfpError vfp_pipeline_create_shader_module(VfpPipeline *pPipeline,
                                            size_t shader_size,
                                            VkShaderModule *out_shader_module);
 
-VfpError vfp_pipeline_destroy(VfpPipeline *pipeline);
+VfpError vfp_pipeline_destroy(VfpDeviceVulkan *pDevice, VfpPipeline *pipeline);
 
 #endif

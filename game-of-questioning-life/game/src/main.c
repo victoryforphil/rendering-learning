@@ -77,7 +77,7 @@ cleanup:
     free(vertex_path);
     free(fragment_path);
 
-    vfp_pipeline_destroy(&pipeline);
+    vfp_pipeline_destroy(&device, &pipeline);
     vfp_vulkan_device_destroy(&device);
 
     glfwTerminate();
